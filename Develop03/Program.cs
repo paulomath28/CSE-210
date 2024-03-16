@@ -68,7 +68,7 @@ public class Scripture
         List<Word> nonHiddenWords = _words.Where(word => !word.IsHidden).ToList();
         for (int i = 0; i < count; i++)
         {
-            if (nonHiddenWords.Count == 0) // Ensure we have non-hidden words to hide
+            if (nonHiddenWords.Count == 0) // Checking that there are no hidden words to hide
                 break;
 
             int index = random.Next(nonHiddenWords.Count);
@@ -87,7 +87,7 @@ class Program
         string text = "For God so loved the world that he gave his one and only Son, that whoever believes in him shall not perish but have eternal life.";
         Scripture scripture = new Scripture(reference, text);
 
-        // Display the complete scripture
+        //Here is to show the complete scripture
         scripture.Display();
 
         // Memorization process
@@ -98,13 +98,13 @@ class Program
             if (input.ToLower() == "quit")
                 break;
 
-            // Clear the console
+            // Clening the console
             Console.Clear();
 
-            // Hide a few random words
+            //To hide some random words
             scripture.HideRandomWords(2);
 
-            // Display the scripture with hidden words
+            // Will show the scriptures with hidden words
             scripture.Display();
         }
 
