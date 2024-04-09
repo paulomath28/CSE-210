@@ -4,42 +4,36 @@ using System.IO;
 
 namespace SmartSchoolSystem
 {
-    class Student
+    class Person
     {
-        public int Enrollment { get; set; }
-        public string Name { get; set; }
-        public int Grade { get; set; }
-        public List<string> Classes { get; set; }
-        public string GuardianName { get; set; }
+        public string FullName { get; set; }
         public string Address { get; set; }
         public string PhoneNumber { get; set; }
         public string Email { get; set; }
+    }
 
-        public Student(int enrollment, string name, int grade, List<string> classes, string guardianName, string address, string phoneNumber, string email)
-        {
-            Enrollment = enrollment;
-            Name = name;
-            Grade = grade;
-            Classes = classes;
-            GuardianName = guardianName;
-            Address = address;
-            PhoneNumber = phoneNumber;
-            Email = email;
-        }
+    class Student : Person
+    {
+        public int Enrollment { get; set; }
+        public int Grade { get; set; }
+        public List<string> Classes { get; set; }
+        public string GuardianName { get; set; }
+    }
 
-        public override string ToString()
-        {
-            return $"Enrollment: {Enrollment}\nName: {Name}\nGrade: {Grade}\nClasses: {string.Join(", ", Classes)}\nGuardian Name: {GuardianName}\nAddress: {Address}\nPhone Number: {PhoneNumber}\nEmail: {Email}\n";
-        }
+    class Teacher : Person
+    {
+        public string Subject { get; set; }
+        public List<int> Grades { get; set; }
     }
 
     class Program
     {
         static List<Student> students = new List<Student>();
+        static List<Teacher> teachers = new List<Teacher>();
 
         static void Main(string[] args)
         {
-            LoadDataFromFile("students.txt");
+            LoadStudentsDataFromFile("students.txt");
 
             while (true)
             {
@@ -48,7 +42,10 @@ namespace SmartSchoolSystem
                 Console.WriteLine("2. Search Student");
                 Console.WriteLine("3. Update Student");
                 Console.WriteLine("4. Delete Student");
-                Console.WriteLine("5. Exit");
+                Console.WriteLine("5. Register Teacher");
+                Console.WriteLine("6. Update Teacher");
+                Console.WriteLine("7. Delete Teacher");
+                Console.WriteLine("8. Exit");
 
                 int choice = Convert.ToInt32(Console.ReadLine());
 
@@ -67,7 +64,17 @@ namespace SmartSchoolSystem
                         DeleteStudent();
                         break;
                     case 5:
-                        SaveDataToFile("students.txt");
+                        RegisterTeacher();
+                        break;
+                    case 6:
+                        UpdateTeacher();
+                        break;
+                    case 7:
+                        DeleteTeacher();
+                        break;
+                    case 8:
+                        SaveStudentsDataToFile("students.txt");
+                        SaveTeachersDataToFile("teachers.txt");
                         Environment.Exit(0);
                         break;
                     default:
@@ -77,7 +84,7 @@ namespace SmartSchoolSystem
             }
         }
 
-        static void LoadDataFromFile(string filename)
+        static void LoadStudentsDataFromFile(string filename)
         {
             if (File.Exists(filename))
             {
@@ -86,30 +93,42 @@ namespace SmartSchoolSystem
                 {
                     string[] data = line.Split(',');
                     List<string> classes = new List<string>(data[3].Split(';'));
-                    Student student = new Student(Convert.ToInt32(data[0]), data[1], Convert.ToInt32(data[2]), classes, data[4], data[5], data[6], data[7]);
+                    Student student = new Student
+                    {
+                        Enrollment = Convert.ToInt32(data[0]),
+                        FullName = data[1],
+                        Grade = Convert.ToInt32(data[2]),
+                        Classes = classes,
+                        GuardianName = data[4],
+                        Address = data[5],
+                        PhoneNumber = data[6],
+                        Email = data[7]
+                    };
                     students.Add(student);
                 }
             }
         }
 
-        static void SaveDataToFile(string filename)
+        static void SaveStudentsDataToFile(string filename)
         {
             using (StreamWriter writer = new StreamWriter(filename))
             {
                 foreach (Student student in students)
                 {
-                    writer.WriteLine($"{student.Enrollment},{student.Name},{student.Grade},{string.Join(";", student.Classes)},{student.GuardianName},{student.Address},{student.PhoneNumber},{student.Email}");
+                    writer.WriteLine($"{student.Enrollment},{student.FullName},{student.Grade},{string.Join(";", student.Classes)},{student.GuardianName},{student.Address},{student.PhoneNumber},{student.Email}");
                 }
             }
         }
+
+        // Method for manipulating students
 
         static void AddStudent()
         {
             Console.WriteLine("Enter Enrollment:");
             int enrollment = Convert.ToInt32(Console.ReadLine());
 
-            Console.WriteLine("Enter Name:");
-            string name = Console.ReadLine();
+            Console.WriteLine("Enter Full Name:");
+            string fullName = Console.ReadLine();
 
             Console.WriteLine("Enter Grade:");
             int grade = Convert.ToInt32(Console.ReadLine());
@@ -130,7 +149,17 @@ namespace SmartSchoolSystem
             Console.WriteLine("Enter Email:");
             string email = Console.ReadLine();
 
-            Student newStudent = new Student(enrollment, name, grade, classes, guardianName, address, phoneNumber, email);
+            Student newStudent = new Student
+            {
+                Enrollment = enrollment,
+                FullName = fullName,
+                Grade = grade,
+                Classes = classes,
+                GuardianName = guardianName,
+                Address = address,
+                PhoneNumber = phoneNumber,
+                Email = email
+            };
             students.Add(newStudent);
             Console.WriteLine("Student added successfully.");
         }
@@ -159,8 +188,8 @@ namespace SmartSchoolSystem
             Student student = students.Find(s => s.Enrollment == enrollment);
             if (student != null)
             {
-                Console.WriteLine("Enter New Name:");
-                student.Name = Console.ReadLine();
+                Console.WriteLine("Enter New Full Name:");
+                student.FullName = Console.ReadLine();
 
                 Console.WriteLine("Enter New Grade:");
                 student.Grade = Convert.ToInt32(Console.ReadLine());
@@ -203,6 +232,107 @@ namespace SmartSchoolSystem
             else
             {
                 Console.WriteLine("Student not found.");
+            }
+        }
+
+        // Methods for manipulating teachers
+
+        static void RegisterTeacher()
+        {
+            Console.WriteLine("Enter Full Name of Teacher:");
+            string fullName = Console.ReadLine();
+
+            Console.WriteLine("Enter Subject:");
+            string subject = Console.ReadLine();
+
+            Console.WriteLine("Enter Grades (separated by ';'):");
+            string[] gradesArray = Console.ReadLine().Split(';');
+            List<int> grades = new List<int>();
+            foreach (string grade in gradesArray)
+            {
+                if (int.TryParse(grade, out int parsedGrade))
+                {
+                    grades.Add(parsedGrade);
+                }
+                else
+                {
+                    Console.WriteLine($"Invalid grade: {grade}");
+                }
+            }
+
+            Teacher newTeacher = new Teacher
+            {
+                FullName = fullName,
+                Subject = subject,
+                Grades = grades
+            };
+            teachers.Add(newTeacher);
+            Console.WriteLine("Teacher registered successfully.");
+        }
+
+        static void SaveTeachersDataToFile(string filename)
+        {
+            using (StreamWriter writer = new StreamWriter(filename))
+            {
+                foreach (Teacher teacher in teachers)
+                {
+                    writer.WriteLine($"{teacher.FullName},{teacher.Subject},{string.Join(";", teacher.Grades)}");
+                }
+            }
+        }
+
+        static void UpdateTeacher()
+        {
+            Console.WriteLine("Enter Full Name of Teacher to update:");
+            string fullName = Console.ReadLine();
+
+            Teacher teacher = teachers.Find(t => t.FullName == fullName);
+            if (teacher != null)
+            {
+                Console.WriteLine("Enter New Full Name:");
+                teacher.FullName = Console.ReadLine();
+
+                Console.WriteLine("Enter New Subject:");
+                teacher.Subject = Console.ReadLine();
+
+                Console.WriteLine("Enter New Grades (separated by ';'):");
+                string[] gradesArray = Console.ReadLine().Split(';');
+                List<int> grades = new List<int>();
+                foreach (string grade in gradesArray)
+                {
+                    if (int.TryParse(grade, out int parsedGrade))
+                    {
+                        grades.Add(parsedGrade);
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Invalid grade: {grade}");
+                    }
+                }
+                teacher.Grades = grades;
+
+                Console.WriteLine("Teacher updated successfully.");
+            }
+            else
+            {
+                Console.WriteLine("Teacher not found.");
+            }
+        }
+
+        static void DeleteTeacher()
+        {
+            Console.WriteLine("Enter Full Name of Teacher to delete:");
+            string fullName = Console.ReadLine();
+
+            Teacher teacher = teachers.Find(t => t.FullName == fullName);
+            if (teacher != null)
+            {
+                teachers.Remove(teacher);
+                Console.WriteLine("Teacher deleted successfully.");
+            }
+            else
+            {
+                Console.WriteLine("Teacher not found.");
             }
         }
     }
